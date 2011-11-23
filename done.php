@@ -3,8 +3,7 @@
  * Typecho2Wordpress
  * typecho 2 wordpress 转换程序，主要原理是查询typecho里的数据，然后插入到wordpress数据库里。
  * @author hevin <panxianhai@gmail.com>
- * @copyright http://www.panxianhai.com
- * @version 0.3.0 2011-05-20 20:30
+ * @website http://www.panxianhai.com
  */
 error_reporting(E_ALL);
 $website_http = explode('//', trim($_POST['website']));
@@ -47,7 +46,7 @@ $tpconn = mysql_connect($host, $user,$password);
 mysql_select_db($tp_database, $tpconn);
 mysql_query("SET NAMES utf8");
 /* 查询所有文章  */
-$post_sql = "SELECT * FROM {$tp_prefix}contents";
+$post_sql = "SELECT * FROM {$tp_prefix}contents order by cid ASC";
 $post_result = mysql_query($post_sql);
 
 while ($row = mysql_fetch_assoc($post_result)) {
@@ -65,8 +64,8 @@ while ($row = mysql_fetch_assoc($post_result)) {
 			'post_date'         => change_date_format($row['created']),
 			'post_date_gmt'     => change_date_format($row['created']),
 			'post_content'      => "",
-			'post_title'        => $row['title'],
-			'post_status'       => $row['status'],
+			'post_title'        => addslashes($row['title']),
+			'post_status'       => 'inherit',
 			'comment_status'    => change_comment_status($row['allowComment']),
 			'ping_status'       => change_ping_status($row['allowPing']),
 			'post_password'     => $row['password'],
@@ -84,13 +83,17 @@ while ($row = mysql_fetch_assoc($post_result)) {
 			'comment_count'     => $row['commentsNum'],
 		));
 	} else if( $row['type'] == "post" || $row['type'] == "page" ) {
+
+		// 将文章中的附件地址更改,情况比较复杂，简单处理一下显示问题
+		$row['text'] = str_replace('/usr/', '/wp-content/', $row['text']);
+
 		$wpdb->insertRecords($wp_prefix . "posts", array(
 			'ID'                => $row['cid'],
 			'post_author'       => $row['authorId'],
 			'post_date'         => change_date_format($row['created']),
 			'post_date_gmt'     => change_date_format($row['created']),
-			'post_content'      => $row['text'],
-			'post_title'        => $row['title'],
+			'post_content'      => addslashes($row['text']),
+			'post_title'        => addslashes($row['title']),
 			'post_status'       => $row['status'],
 			'comment_status'    => change_comment_status($row['allowComment']),
 			'ping_status'       => change_ping_status($row['allowPing']),
@@ -125,7 +128,7 @@ while ($row = mysql_fetch_assoc($comment_result)) {
 		'comment_author_IP'    => $row['ip'],
 		'comment_date'         => change_date_format($row['created']),
 		'comment_date_gmt'     => change_date_format($row['created']),
-		'comment_content'      => $row['text'],
+		'comment_content'      => addslashes($row['text']),
 		'comment_approved'     => change_comment_approved($row['status']),
 		'comment_agent'        => $row['agent'],
 		'comment_type'         => '',
@@ -159,7 +162,7 @@ while ($row = mysql_fetch_assoc($cat_tag_result)) {
 			$taxonomy_id = $wpdb->insertRecords($wp_prefix . "term_taxonomy", array(
 				'term_id'     => $row2['mid'],
 				'taxonomy'    => change_taxonomy($row['type']),
-				'description' => $row['description'],
+				'description' => addslashes($row['description']),
 				'parent'      => 0,
 				'count'       => $row['count'],
 			));
@@ -178,7 +181,7 @@ while ($row = mysql_fetch_assoc($cat_tag_result)) {
 			));
         }
 	}
-} // end wile*/
+} // end wile
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
