@@ -1,4 +1,4 @@
-### 2014-12-05 update: 有一个更好的typecho的导出插件，生成xml文件，直接导入wordpress。地址：https://github.com/panxianhai/TypExport
+## 2014-12-05 update: 有一个更好的typecho的导出插件，生成xml文件，直接导入wordpress。地址：https://github.com/panxianhai/TypExport
 
 typecho 2 wordpress
 ============================
